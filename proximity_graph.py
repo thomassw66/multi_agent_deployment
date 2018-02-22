@@ -38,6 +38,9 @@ def get_neighborhood(i, points, adjacentcy_matrix):
 
 fig = plt.figure()
 
+plt.xlim(-5, 5)
+plt.ylim(-5, 5)
+
 # Set up a contour plot
 x = np.linspace(-5, 5, 20);
 y = np.linspace(-5, 5, 20);
@@ -47,10 +50,18 @@ plt.contour(X, Y, Z)
 
 
 # some random animations
-x = np.arange(10)
-y = np.random.random([10, 10, 2]) * 10 - 5
-plt.xlim(-5, 5)
-plt.ylim(-5, 5)
+# TODO: replace this with waypoint generation
+TIME_STEPS = 10
+points = np.random.random([10, 2]) * 10 - 5
+y = [points]
+for i in range(1, TIME_STEPS):
+    x = y[i-1]
+    x = x + 1
+    print x
+    y.append(x);
+y = np.array(y)
+
+# graph initially empty
 graph, = plt.plot([], [], 'o')
 
 def animate(i):
