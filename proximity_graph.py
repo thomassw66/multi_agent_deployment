@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 
 # takes a one dimentional array of points [ [x0, y0], [x1, y1], ...] and computes a square distance matrix to each point
 def make_proximity_graph(points):
@@ -31,9 +34,29 @@ def get_neighborhood(i, points, adjacentcy_matrix):
 #   print i
 #    print get_neighborhood(i, points, rd)
 
-#
-#x = np.linspace(-5, 5, 20);
-#y = np.linspace(-5, 5, 20);
-#[X, Y] = np.meshgrid(x , y);
 
+
+fig = plt.figure()
+
+# Set up a contour plot
+x = np.linspace(-5, 5, 20);
+y = np.linspace(-5, 5, 20);
+[X, Y] = np.meshgrid(x , y);
+Z = np.sqrt( np.square(X) + np.square(Y) )
+plt.contour(X, Y, Z)
+
+
+# some random animations
+x = np.arange(10)
+y = np.random.random([10, 10, 2]) * 10 - 5
+plt.xlim(-5, 5)
+plt.ylim(-5, 5)
+graph, = plt.plot([], [], 'o')
+
+def animate(i):
+    graph.set_data(y[i,:,0], y[i,:,1])
+    return graph
+
+ani = FuncAnimation(fig, animate, frames=10, interval=200)
+plt.show()
 
