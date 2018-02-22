@@ -30,7 +30,7 @@ def get_neighborhood(i, points, adjacentcy_matrix):
 # all we should need is the points and its actual neighbors
 # points [x, y]
 def calculate_gradient(point, neighbors):
-    return ellipsoid_gradient(point, 1.0, 3.0)
+    return potential_field_gradient(point, neighbors) + 0.5 * ellipsoid_gradient(point, 1.0, 3.0)
 
 def normalize(v):
     norm = np.linalg.norm(v)
@@ -42,11 +42,18 @@ def normalize(v):
 ############## COST FUNCTION GRADIENTS #############
 # Ciruclar cost function gradient
 def circle_gradient(point):
-    return [2*point[0], 2*point[1]]
+    return np.array([2*point[0], 2*point[1]], dtype='float64')
 
 def ellipsoid_gradient(point, a, b):
-    return [2 * point[0] / a**2 , 2 * point[1] / b ** 2]
+    return np.array([2 * point[0] / a**2 , 2 * point[1] / b ** 2], dtype='float64')
 
+def potential_field_gradient(point, neighbors):
+    sum = np.array([0, 0], dtype='float64')
+    for i in range(len(neighbors)):
+        d = neighbors[i] - point
+        distance = np.linalg.norm(d)
+        sum += (distance ** -2 + 1/3 * distance ** -3) * normalize(d)
+    return sum
 
 # points = np.array([[1,1], [2,2], [3,3]])
 # pg = make_proximity_graph(points)
@@ -71,11 +78,11 @@ plt.contour(X, Y, Z)
 """
 # some random animations
 # TODO: replace this with waypoint generation
-TIME_STEPS = 10
-STEP_SIZE = 0.5
+TIME_STEPS = 50
+STEP_SIZE = 0.1
 MAX_RADIUS = 2.0
 
-points = np.random.random([10, 2]) * 10 - 5
+points = np.random.random([10, 2]) * 3 - 1.5
 y = [points]
 for i in range(1, TIME_STEPS):
     x = y[i-1].copy()
@@ -87,9 +94,10 @@ for i in range(1, TIME_STEPS):
         # update x[i]
         n = get_neighborhood(i, x, r_disk)
         grad = calculate_gradient(x[i], n)
+        size = np.linalg.norm(grad)
         grad = normalize(grad)
         # normalize gradient
-        x[i] = x[i] - STEP_SIZE * grad  # add the negative gradient to the point
+        x[i] = x[i] - min(STEP_SIZE, size) * grad  # add the negative gradient to the point
     y.append(x);
 y = np.array(y)
 
@@ -100,6 +108,6 @@ def animate(i):
     graph.set_data(y[i,:,0], y[i,:,1])
     return graph
 
-ani = FuncAnimation(fig, animate, frames=10, interval=200)
+ani = FuncAnimation(fig, animate, frames=TIME_STEPS, interval=2000/TIME_STEPS)
 plt.show()
 
