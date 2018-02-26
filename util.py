@@ -50,13 +50,13 @@ def approx_integrate_poly(phi, points, resolution):
     X,Y = np.meshgrid(x,y)
     Z = phi(X,Y)
     # for points not inside polygon set Z to zero
-    # TODO: make this less excruciatingly slow
+    # TODO: make this less excruciatingly slow (not feasible to compute for resolution > 100)
     polygon = Polygon(points)
     is_in_poly = np.ones((resolution, resolution))
     for i in range(resolution):
         for j in range(resolution):
             p = Point(X[i][j],Y[i][j])
-            is_in_poly[i][j] = polygon.contains(p) or polygon.touches(p)
+            is_in_poly[i][j] = polygon.contains(p) + polygon.touches(p)
     # This polygon library is going to kill me ^
     dx = float(x_high - x_low) / float(resolution)
     dy = float(y_high - y_low) / float(resolution)
