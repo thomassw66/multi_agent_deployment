@@ -12,7 +12,8 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 # points [x, y]
 def calculate_gradient(point, neighbors):
     return 4 * grads.potential_field(point, neighbors) + \
-            2.0 * grads.ellipsoid(point,1,0.7, center=(2,2))
+            1.0 * grads.ellipsoid(point,0.7,0.7, center=(4,3)) + \
+            1.0 * grads.ellipsoid(point,0.7,0.7, center=(-4,3))
 
 # GENERATE DATA
 
@@ -70,8 +71,8 @@ point, = ax.plot([],[], 'bo')
 
 
 X,Y = np.meshgrid(np.linspace(-5,5, 100), np.linspace(-5, 5, 100))
-Z = contours.ellipsoid(X, Y, 1, 0.7, center=(2,2))
-plt.contourf(X, Y, -Z, 30, cmap='gray')
+Z = 1.0 * contours.ellipsoid(X, Y, 0.2, 0.2, center=(4,3)) + 1.0 * contours.ellipsoid(X, Y, 0.2, 0.2, center=(-4,3))
+plt.contourf(X, Y, -Z, 50, cmap='gray')
 
 def animate(i):
     # redraw agent trajectories (the blue path line)
