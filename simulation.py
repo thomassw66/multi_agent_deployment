@@ -17,7 +17,7 @@ def calculate_gradient(point, neighbors):
 
 # GENERATE DATA
 integration_resolution = 50
-NUM_ADVERSARIES = 6
+NUM_ADVERSARIES = 0
 TIME_STEPS = 50
 STEP_SIZE = 0.3
 MAX_RADIUS = 1
@@ -26,9 +26,9 @@ A = 0.5
 B = 0.5
 K = 500
 R = 1
-important_center1 = (-3, 0.0)
-important_center2 = (3, 3.0) / np.sqrt(2)
-
+#important_center1 = (-3, 0.0)
+#important_center2 = (3, 3.0) / np.sqrt(2)
+important_centers = [ (-3, 0.0),(3,3) / np.sqrt(2),(0,-3)]
 
 NUM_AGENTS = 15
 agent_center = (-0.0, 0)
@@ -43,7 +43,8 @@ SR = lambda x: x * (np.arctan(L * x) / np.pi + 0.5)
 def ellipse(xc,yc,a,b,r):
 	return lambda X, Y: a*(X - xc)**2 + b*(Y - yc)**2 - r**2
 
-importance_function = lambda X, Y: np.exp(-K * SR( ellipse(important_center1[0], important_center1[1],A,B,R)(X,Y) )) + 0.90 * np.exp(-K * SR(ellipse(important_center2[0], important_center2[1], A, B, R)(X, Y)))
+importance_function = lambda X, Y: sum([np.exp(-K * SR( ellipse(c[0],c[1],A,B,R)(X,Y) )) for c in important_centers])
+
 dist_square = lambda X, Y, center: np.square(X - center[0]) + np.square(Y-center[1])
 
 points = make_random_points(NUM_AGENTS, agent_radius, center=agent_center) # np.random.random([10, 2]) * 10 - 5
@@ -55,7 +56,7 @@ points[NUM_AGENTS - NUM_ADVERSARIES: NUM_AGENTS] = [
     [-0.6, -0.6],
     [-1.0, -0.2],
     [ 1.0, 0.0],
-    ][:NUM_ADVERSARIES] + important_center2 if NUM_ADVERSARIES > 0 else np.zeros((0,2))
+    ][:NUM_ADVERSARIES] + important_centers[1] if NUM_ADVERSARIES > 0 else np.zeros((0,2))
 
 y = [points]
 v = [Voronoi(points)]
