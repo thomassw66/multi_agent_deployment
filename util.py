@@ -35,7 +35,7 @@ def normalize(v):
 
 # creates n uniformly distributed random points
 def make_random_points(n, r, center=(0,0)):
-    return np.random.random([n, 2]) * r + center
+    return np.random.randn(n, 2) * r + center
 
 # given a convex polygon defining a voronoi partition compute the
 # integral
@@ -62,4 +62,57 @@ def approx_integrate_poly(phi, points, resolution):
     dy = float(y_high - y_low) / float(resolution)
     area = dx * dy
     return area * np.sum(Z * is_in_poly)
+
+"""
+ 	phi: some function we want to integrate 
+	center: the center of the circular bounding region
+	radius: radius of the circular region we are integrating
+	vor_ridges: a list of lines representing a voronoi partition
+"""
+def integrate_r_limited_voronoi(phi, point_list, point_index, center, radius, vor, resolution):
+	x_range = np.linspace(center[0] - radius, center[0] + radius, resolution)
+	y_range = np.linspace(center[1] - radius, center[1] + radius, resolution)
+	X,Y = np.meshgrid(x_range, y_range)
+	Z = phi(X, Y)
+	lines = [] 
+	for i in range(len(vor.ridge_vertices)):
+		simplex = np.asarray(vor.ridge_vertices[i])
+		pointidx = vor.ridge_points[i]
+		if point_index in pointidx:
+			if np.all(simplex >= 0):
+				p1 = vor.vertices[simplex[0]]
+				p2 = vor.vertices[simplex[1]]
+				lines.append([p1[0], p1[1], p2[0], p2[1]]) 
+			else: 
+				p1 = vor.vertices[simplex[simplex >= 0][0]]
+				p2 = 0.5 * (point_list[pointidx[0]] + point_list[pointidx[1]])
+				lines.append([p1[0], p1[1], p2[0], p2[1]])
+	is_inside = inside_r_limited_voronoi(center, radius, lines, [X, Y])
+	# print Z
+	Z *= is_inside
+	dx = float(radius * 2) / float(resolution)
+	dy = float(radius * 2) / float(resolution)
+	return np.sum(Z) * dx * dy
+
+def inside_r_limited_voronoi(center, radius, lines, mesh):
+	# inside r radius
+	X, Y = mesh
+	result = np.ones(X.shape)
+	in_circle = inside_circle(center, radius, mesh) # calculate distance @ each point in meshgrid
+	result *= in_circle # zero out ones outside radius  
+	# on same side of each voronoi line 
+	for line in lines:
+		is_on_same_side = same_side(center, line, mesh)
+		result *= is_on_same_side
+	return result
+
+def inside_circle(center, radius, mesh):
+	X, Y = mesh 
+	return np.square(X - center[0]) + np.square(Y - center[1]) < radius**2
+
+def same_side(point, line, mesh):
+	X, Y = mesh
+	x1, y1, x2, y2 = line
+	ax, ay = point 
+	return ((y1 - y2)*(ax - x1)+(x2 - x1)*(ay - y1)) * ((y1 - y2)*(X - x1)+(x2 - x1)*(Y - y1)) >= 0
 
