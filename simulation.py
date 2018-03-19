@@ -18,10 +18,10 @@ B = 0.5
 K = 500
 R = 1
 
-important_centers = [(-3, 0),(3,3) / np.sqrt(2)]
+important_centers = [(-3, 0),(3,3) / np.sqrt(2), (4.5,4.5), (-4.5, 4.5), (0,0)]
 
 NUM_AGENTS = 16
-agent_center = (0, 0)
+agent_center = (-3, -3)
 agent_radius = 0.2
 
 # Boundaries of our environment 
@@ -35,6 +35,10 @@ importance_function = lambda X, Y: sum( [ np.exp(-np.square(X-c[0])-np.square(Y-
 dist_square = lambda X, Y, center: np.square(X - center[0]) + np.square(Y-center[1])
 
 points = make_random_points(NUM_AGENTS, agent_radius, center=agent_center) 
+
+"""
+These are the location of our "spoofed aversaries" they are not intelligent and do not move 
+"""
 # TODO: make this less ugly 
 points[NUM_AGENTS - NUM_ADVERSARIES: NUM_AGENTS] = [
     [-.5, .2], 
