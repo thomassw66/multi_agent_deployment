@@ -148,26 +148,11 @@ def animate(i):
     	pointidx = vor.ridge_points[i] # is this always the same length?
      	if np.all(simplex >= 0):
     		voronoi_lin_segs[i].set_data(vor.vertices[simplex, 0], vor.vertices[simplex, 1])
- 	else:
-            # CALCULATE VORONOI LINE SEGMENTS THAT ARE NOT FINITELY BOUNDED 
-            # THIS IS STILL REALLY BUGGY, LOOKS BETTER IF THESE ARE IGNORED FOR NOW
-            #center = points.mean(axis=0)
-            #e = simplex[simplex >= 0][0] # finite end voronoi vertex
-            # i = simplex[simplex >= 0][0] # finite end Voronoi vertex
-            #t = points[pointidx[1]] - points[pointidx[0]]  # tangent
-            #t = t / np.linalg.norm(t)
-            #n = np.array([-t[1], t[0]]) # normal
-            #midpoint = points[pointidx].mean(axis=0)
-            # the far point is going to be along this line intersecting with the boundary of the environment
-            #far_point = vor.vertices[e] + np.sign(np.dot(vor.vertices[e] - center, n)) * n * 10
-            #voronoi_lin_segs[i].set_data([vor.vertices[e,0], far_point[0]],
-            #      [vor.vertices[e,1], far_point[1]])
-		 voronoi_lin_segs[i].set_data([], [])
-
+    else:
+	    voronoi_lin_segs[i].set_data([], [])
 
     for i in range(important_length, len(voronoi_lin_segs)):
         voronoi_lin_segs[i].set_data([], [])
-
 
     return point
 
