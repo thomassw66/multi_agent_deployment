@@ -11,12 +11,13 @@ if __name__ == "__main__":
     X, Y = np.meshgrid(x, y)
     mesh = X,Y
 
-    agents = np.random.random((200, 2))
+    np.random.seed(42)
+    agents = np.random.random((20, 2))
 
     import matplotlib.pyplot as plt
     plt.plot(agents[:,0], agents[:,1], 'o')
 
-    alphas = [-5.0] # [-0.5, -1.0, -5.0, -10.0]
+    alphas = [1.0] # [-0.5, -1.0, -5.0, -10.0]
     f = quadratic_f    
     print agents    
     

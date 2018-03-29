@@ -69,3 +69,23 @@ def make_H(P, sensing_fn, mix_fn, alpha, imp_fn,
         X,Y = np.meshgrid(x,y)
         
         a = np.power( f(pi, q) / g(sensing_fn(P)), alpha - 1) * (q - pi) * phi(q)
+
+def make_grad_H(alpha, f, grad_f, phi):
+    g = mixing_function(alpha)
+    def eval_H(agents, mesh, dx, dy):
+        g_term = g([f(a, mesh) for a in agents]) 
+        p_term = phi(mesh)
+        return dx * dy * np.sum(np.multiply(g_term, p_term))
+    def grad_H(agents, mesh, dx, dy):
+        ga = g([f(a, mesh) for a in agents])
+        H = np.zeros((len(agents), 2))
+        for i in range(len(agents)):
+            f_term = np.power(f(agents[i], mesh) / ga, alpha - 1.0)
+            grad_fx, grad_fy = grad_f(agents[i], mesh)
+            p_term = phi(mesh)
+            H[i,0] = dx * dy * np.sum(
+                np.multiply(np.multiply(f_term, grad_fx), p_term)
+            )
+            H[i,1] = dx * dy * np.sum(np.multiply(np.multiply(f_term, grad_fy), p_term))
+        return H
+    return eval_H, grad_H
