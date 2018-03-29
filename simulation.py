@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -5,6 +7,7 @@ import gradients as grads
 import contours
 from util import *
 from scipy.spatial import Voronoi, voronoi_plot_2d
+from plot_trajectory import *
 
 # General Parameters 
 integration_resolution = 50
@@ -105,57 +108,14 @@ y = np.array(y)
 # ************* SHOW TRAJECTORIES ***********************************
 fig, ax = plt.subplots()
 
-ax.set_xlim(X_LIM)
-ax.set_ylim(Y_LIM)
-
-# graph initially empty
-# graph, = plt.plot([], [], 'o')
-
-# voronoi
-#voronoi, = ax.plot([], [], 'ro')
-voronoi_lin_segs = []
-for i in range(NUM_AGENTS*4):
-    vor_lin_seg, = ax.plot([], [], 'k-', lw=1)
-    voronoi_lin_segs.append(vor_lin_seg)
-
-lines = []
-for i in range(len(y[0])):
-    line, = ax.plot([], [], 'b--')
-    lines.append(line)
-
-point, = ax.plot([],[], 'bo')
-a_point, = ax.plot([], [], 'ro')
-# draw obstacle
-
-
 X,Y = np.meshgrid(np.linspace(X_LIM[0],X_LIM[1], 100), np.linspace(Y_LIM[0], Y_LIM[1], 100))
 Z = importance_function(X, Y)
 plt.contourf(X, Y, -Z, 20, cmap='pink')
 
-def animate(i):
-    # redraw agent trajectories (the blue path line)
-    for j in range(len(y[i])):
-            lines[j].set_data(y[:i, j, 0], y[:i, j, 1])
-    # place a blue dot at each agents location
-    point.set_data(y[i,:NUM_AGENTS-NUM_ADVERSARIES,0], y[i,:NUM_AGENTS-NUM_ADVERSARIES,1])
-    a_point.set_data(y[i,NUM_AGENTS-NUM_ADVERSARIES:,0], y[i, NUM_AGENTS-NUM_ADVERSARIES:,1])
+ax.set_xlim(X_LIM)
+ax.set_ylim(Y_LIM)
 
-    # draw voronoi partitions
-    vor = v[i]
-    important_length = min(len(vor.ridge_vertices), len(voronoi_lin_segs))
-    for i in range(important_length):
-    	simplex = np.asarray(vor.ridge_vertices[i])
-    	pointidx = vor.ridge_points[i] # is this always the same length?
-     	if np.all(simplex >= 0):
-    		voronoi_lin_segs[i].set_data(vor.vertices[simplex, 0], vor.vertices[simplex, 1])
-    else:
-	    voronoi_lin_segs[i].set_data([], [])
-
-    for i in range(important_length, len(voronoi_lin_segs)):
-        voronoi_lin_segs[i].set_data([], [])
-
-    return point
-
+animate = plot_trajectory_animation(ax, y[:,:-5,:], plot_vor=True)
 ani = FuncAnimation(fig, animate, frames=TIME_STEPS, interval=2000.0/TIME_STEPS)
 plt.show()
 

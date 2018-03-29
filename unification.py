@@ -1,5 +1,8 @@
+#!/usr/bin/env python
+
 import numpy as np
 import argparse
+import time 
 
 from unification_util import *
 from plot_trajectory import * 
@@ -22,19 +25,24 @@ if __name__ == "__main__":
     parser.add_argument("--random_seed", type=int, default=42, help="random seed")
     parser.add_argument("--agent_center", type=coords, default=(0,0))    
     parser.add_argument("--agent_variance", type=float, default=1.0)
-    parser.add_argument("--importance_centers", type=coords, default=(0,0), nargs='+')
+    parser.add_argument("--importance_centers", type=coords, default=[(0,0)], nargs='+')
     parser.add_argument("--boundaries", type=coords, default=[(-1, 1), (-1, 1)], nargs=2)
     parser.add_argument("--plot_vor", type=bool, default=False)
-    parser.add_argument("--with_noise", type=bool, default=False)
+    parser.add_argument("--run_id", default=time.strftime("%Y_%m_%d-%H_%M_%S"))
+    parser.add_argument("--noisiness", type=float, default=0.0)
 
     args = parser.parse_args()
-
+     
+    run_id = args.run_id
     TIME_STEPS = args.time_steps
     num_agents = args.num_agents
     x_min, x_max = args.boundaries[0]
     y_min, y_max = args.boundaries[1]
     res = args.resolution
-    importance_centers = args.importance_centers
+    importance_centers = np.asarray(args.importance_centers)
+
+    step_size = args.step_size
+    noisiness = args.noisiness
 
     agent_center=args.agent_center
     agent_variance=args.agent_variance
@@ -57,7 +65,6 @@ if __name__ == "__main__":
     phi = multivariate_gaussian_importance_func(importance_centers)        
     eval_H, grad_H = make_grad_H(alpha, f, grad_f, phi)
    
-    with_noise = args.with_noise
  
     # ******* Generate trajectories    
     x_t = [agents]
@@ -66,17 +73,23 @@ if __name__ == "__main__":
         x = x_t[-1].copy()
         H = grad_H(x, mesh, dx, dy)
 
-        for j in range(len(H)):
-            norm = np.linalg.norm(H[j])
-            if norm > 0.0: 
-                H[j] = H[j] / norm
-                H[j] = H[j] + np.random.randn(2) * norm * (1.0/float(i))
+        noise = np.random.randn(num_agents, 2)
+        noise_normals = np.array(map(np.linalg.norm, noise)).reshape(num_agents, 1)
+        noise = np.divide(noise, noise_normals)
+        noise = (noisiness) * noise
+        
+        H_normals = np.array(map(np.linalg.norm, H)).reshape(num_agents, 1)
+        H += np.multiply(H_normals, noise)
+        H = np.divide(H, H_normals)
 
-        x -= (0.05) * H 
+        x -= (step_size) * H
         x_t.append(x)
         H_t.append(eval_H(x, mesh, dx, dy)) # record cost 
     x_t = np.array(x_t) # had to wait to cast so we could use array.append
     H_t = np.array(H_t)
+
+    np.savez("simulations/" + run_id + ".npz", x_t=x_t, H_t=H_t, bound=[x_min, x_max, y_min, y_max], mesh=mesh, Z=-phi(mesh))
+    print "done"
 
     # ************* SHOW TRAJECTORIES ***********************************
     import matplotlib.pyplot as plt

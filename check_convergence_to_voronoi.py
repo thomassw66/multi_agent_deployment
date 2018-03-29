@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from unification_util import *
 
 if __name__ == "__main__":
